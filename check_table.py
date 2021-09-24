@@ -34,11 +34,13 @@ dayNo = int(input("日："))
 
 yearMonthDayNo = str(Excel_date(dt.datetime(yearNo, monthNo, dayNo)))
 
-sqlStr = "SELECT time,name,place1,place2,send,charge FROM dayly_data_" + str(yearNo) + \
+sqlStr = "SELECT time,name,place1,place2 FROM dayly_data_" + str(yearNo) + \
     " where date=" + yearMonthDayNo + \
     " ORDER BY time IS NULL ASC,SUBSTR('0'||TRIM(REPLACE(time,'PM','11:PM'),'～'),-5,5) ASC,RTRIM(time,'～') DESC,place1 ASC"
 
 df = pd.read_sql(sqlStr, conn)
+df.columns = ['時間', '名前', '迎え', '送り']
+#df.options.display.max_row = 40
 df.to_csv("to_csv.csv", sep='\t')
 
 print(df)
