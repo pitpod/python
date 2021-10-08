@@ -73,7 +73,7 @@ elif end == "x":
 #elif end == "r":
 
 else:
-    print("test")
+    print(df)
 
 
 cur.close()
