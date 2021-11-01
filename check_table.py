@@ -21,7 +21,6 @@ def sql_data():
         " where date=" + excel_dateNo + \
         " ORDER BY time IS NULL ASC,SUBSTR('0'||TRIM(REPLACE(time,'PM','11:PM'),'～'),-5,5) ASC,RTRIM(time,'～') DESC,place1 ASC"
 
-
     pd.set_option('display.unicode.east_asian_width', True)
     pd.set_option('display.colheader_justify', 'center')
     pd.set_option('display.max_colwidth', 0)
@@ -57,7 +56,7 @@ df.columns = ['時間', '名前', '迎え', '送り']
 df = yearMontDayNo[3]
 
 end = input("c→csvファイルを出力\nx→xlsxファイルを出力\nr→再表示\ne→終了：")
-dateNo = str(yearMontDayNo[0]) + "_" +  str(yearMontDayNo[1]) + "_" + str(yearMontDayNo[2])
+dateNo = str(yearMontDayNo[0]) + "_" + str(yearMontDayNo[1]) + "_" + str(yearMontDayNo[2])
 
 if end == "c":
     df.to_csv(dateNo + ".csv", sep='\t')
