@@ -35,8 +35,51 @@ class Application(tk.Frame):
         # button2 = tk.Button(root, text="印刷", command=lambda: self.print_paper(sentence))
         button2 = tk.Button(root, text="印刷", command=self.printer)
         button2.pack()
+        button3 = tk.Button(root, text="印刷3", command=self.use_win32print)
+        button3.pack()
+        button4 = tk.Button(root, text="印刷4", command=self.use_ShellExecute)
+        button4.pack()
         # root.mainloop()
-    
+
+    def use_ShellExecute(self):
+        filename = tempfile.mktemp(".txt")
+        # ファイルを開くアプリケーションによってはエラーになる
+        open(filename, "w").write("This is a test")
+        win32api.ShellExecute(
+            0,
+            "print",
+            filename,
+            '/d:"%s"' % win32print.GetDefaultPrinter(),
+            ".",
+            0
+        )
+
+    def use_win32print(self):
+        printer_name = win32print.GetDefaultPrinter()
+        # printer_name = 'Microsoft Print to PDF'
+        #
+        # raw_data could equally be raw PCL/PS read from
+        #  some print-to-file operation
+        #
+        if sys.version_info >= (3,):
+          raw_data = bytes("This is a test", "utf-8")
+        else:
+          raw_data = "This is a test"
+
+        print(raw_data)
+        hPrinter = win32print.OpenPrinter(printer_name)
+        try:
+          hJob = win32print.StartDocPrinter(hPrinter, 1, ("test of raw data", None, "RAW"))
+          try:
+            win32print.StartPagePrinter(hPrinter)
+            win32print.WritePrinter(hPrinter, raw_data)
+            win32print.EndPagePrinter(hPrinter)
+          finally:
+            win32print.EndDocPrinter(hPrinter)
+        finally:
+          win32print.ClosePrinter(hPrinter)
+
+
     def printer(self, print_text=""):
         printers = win32print.EnumPrinters(2)
         for p in printers:
@@ -48,7 +91,8 @@ class Application(tk.Frame):
         img = Image.new('RGB', screen, bgcolor)
         img.save(buf, 'PNG')
         # text = 'print out message'
-        printer_name = win32print.GetDefaultPrinter()
+        # printer_name = win32print.GetDefaultPrinter()
+        printer_name = 'Microsoft Print to PDF'
         hPrinter = win32print.OpenPrinter(printer_name)
         # win32api.ShellExecute(0, 'print', buf.getvalue(), printer_name, '.', 0)
         p = subprocess.Popen('lp', stdin=subprocess.PIPE)
@@ -96,11 +140,11 @@ class Application(tk.Frame):
 
         # cv2.imshow('img', img)
         # cv2.imwrite("img.png", img)
-        
+
         b, g, r, a = 0, 255, 0, 0
-        
+
         message = 'OpenCV\n(テスト印刷)'
-        
+
         fontpath = 'C:\\Windows\\Fonts\\HGRPP1.TTC'
         font = ImageFont.truetype(fontpath, 32)
         img_pil = Image.fromarray(img)
@@ -108,10 +152,10 @@ class Application(tk.Frame):
         position = (50, 100)
         draw.text(position, message, font=font, fill=(b, g, r, a))
         img = np.array(img_pil)
-        
+
         cv2.imshow("res", img)
         cv2.imwrite("res.png", img)
-        
+
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
