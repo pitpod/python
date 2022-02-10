@@ -29,8 +29,6 @@ class Application(tk.Frame):
         # codecs.getwriter('utf-8')(sys.stdout)
         # print(sys.stdout.encoding)
         sentence = '123_テスト印刷'
-        # sentence = sentence.encode('cp932')
-        # sentence = sentence.decode('cp932')
         root.geometry("800x480")
         button = tk.Button(root, text="閉じる", command=sys.exit)
         button.pack()
@@ -44,10 +42,10 @@ class Application(tk.Frame):
         button4.pack()
         button5 = tk.Button(root, text="イメージテキスト", command=self.image_text)
         button5.pack()
-        # root.mainloop()
-        """[summary]
-        印刷1
-        """
+
+    """[summary]
+    印刷1
+    """
     def print_paper(self, sentence):
         print(sentence)
         self.sentence = sentence
