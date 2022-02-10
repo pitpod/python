@@ -19,6 +19,11 @@ import win32con
 import numpy as np
 import cv2
 
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QSizePolicy
+from PyQt5.QtGui import QImage, QPalette, QPixmap
+# 追加したimport
+from PyQt5.QtGui import QPainter, QFont, QColor
+from PyQt5.QtCore import Qt
 
 class Application(tk.Frame):
     def __init__(self) -> None:
@@ -42,16 +47,20 @@ class Application(tk.Frame):
         button4.pack()
         button5 = tk.Button(root, text="イメージテキスト", command=self.image_text)
         button5.pack()
+        button6 = tk.Button(root, text="イメージテキスト2", command=self.image_print)
+        button6.pack()
 
     """[summary]
     印刷1
     """
     def print_paper(self, sentence):
-        print(sentence)
         self.sentence = sentence
         self.INCH = 1440
         self.SCALE_FACTOR = 20
-
+        # self.sentence.encode("utf-8").decode("shift-jis", errors="ignore")
+        # self.sentence.encode("utf-8").decode("cp932", errors="ignore")
+        print(self.sentence)
+        print ('defaultencoding:', sys.getdefaultencoding())
         fontdict = {
             "name": "ＭＳ 明朝",
             "height": self.SCALE_FACTOR * 40,
@@ -92,19 +101,6 @@ class Application(tk.Frame):
         p.stdin.close()
         buf.close()
 
-    def use_ShellExecute(self):
-        filename = tempfile.mktemp(".txt")
-        # ファイルを開くアプリケーションによってはエラーになる
-        open(filename, "w").write("This is a テスト")
-        win32api.ShellExecute(
-            0,
-            "print",
-            filename,
-            '/d:"%s"' % win32print.GetDefaultPrinter(),
-            ".",
-            0
-        )
-
     def use_win32print(self):
         self.printer_name = win32print.GetDefaultPrinter()
         # printer_name = 'Microsoft Print to PDF'
@@ -130,6 +126,19 @@ class Application(tk.Frame):
         finally:
             win32print.ClosePrinter(self.hPrinter)
 
+    def use_ShellExecute(self):
+        filename = tempfile.mktemp(".txt")
+        # ファイルを開くアプリケーションによってはエラーになる
+        open(filename, "w").write("This is a テスト")
+        win32api.ShellExecute(
+            0,
+            "print",
+            filename,
+            '/d:"%s"' % win32print.GetDefaultPrinter(),
+            ".",
+            0
+        )
+
     def image_text(self):
         img = np.zeros((200, 500, 3), np.uint8)
 
@@ -153,6 +162,40 @@ class Application(tk.Frame):
 
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+
+
+    def image_print(self):
+        app = QApplication([])
+        window = QWidget()
+        window.setWindowTitle('Image View')
+        # ファイルを読み込み
+        image = QImage('./PB080181.JPG')
+        # -----
+        painter = QPainter()
+        # 加工したいイメージを渡して編集開始
+        painter.begin(image)
+        # ペンの色を指定
+        painter.setPen(Qt.red)
+        #painter.setPen(QColor(255, 0, 0))
+
+        # 使用するフォントを指定
+        painter.setFont(QFont('Times', 30))
+        # テキスト描画
+        painter.drawText(image.rect(), Qt.AlignCenter, 'Symfoware')
+        # 画像の編集終了
+        painter.end()
+        # -----
+        imageLabel = QLabel()
+        # ラベルに読み込んだ画像を反映
+        imageLabel.setPixmap(QPixmap.fromImage(image))
+        # スケールは1.0
+        imageLabel.scaleFactor = 1.0
+        layout = QVBoxLayout()
+        layout.addWidget(imageLabel)
+        window.setLayout(layout)
+        window.resize(400, 300)
+        window.show()
+        app.exec_()
 
 
 def main():
