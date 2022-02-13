@@ -29,10 +29,6 @@ class Application(tk.Frame):
     def __init__(self) -> None:
         root = tk.Tk()
         super().__init__(root)
-        # root.attributes('-type', 'splash')
-        # print(sys.stdout.encoding)
-        # codecs.getwriter('utf-8')(sys.stdout)
-        # print(sys.stdout.encoding)
         sentence = '123_テスト印刷'
         root.geometry("800x480")
         button = tk.Button(root, text="閉じる", command=sys.exit)
@@ -47,8 +43,10 @@ class Application(tk.Frame):
         button4.pack()
         button5 = tk.Button(root, text="イメージテキスト", command=self.image_text)
         button5.pack()
-        button6 = tk.Button(root, text="イメージテキスト2", command=self.image_print)
+        button6 = tk.Button(root, text="イメージテキスト2", command=self.image_text2)
         button6.pack()
+        button7 = tk.Button(root, text="イメージテキスト3", command=self.image_print)
+        button7.pack()
 
     """[summary]
     印刷1
@@ -140,36 +138,65 @@ class Application(tk.Frame):
         )
 
     def image_text(self):
-        img = np.zeros((200, 500, 3), np.uint8)
+        im = Image.new('RGB', (604, 855), (255, 255, 255))
+        draw = ImageDraw.Draw(im)
+        draw.ellipse((100, 100, 150, 200), fill=(255, 0, 0), outline=(0, 0, 0))
+        draw.rectangle((200, 100, 300, 200), fill=(255, 255, 0), outline=(0, 0, 0))
+        message = 'OpenCV\n(テスト印刷)'
+        position = (50, 100)
+        message2 = 'hello world\nこんにちは\n日本\nハロー'
+        position2 = (150, 200)
 
-        # cv2.imshow('img', img)
-        # cv2.imwrite("img.png", img)
+        fontpath = 'C:\\Windows\\Fonts\\HGRPP1.TTC'
+        font = ImageFont.truetype(fontpath, 32)
+        b, g, r, a = 100, 100, 0, 0
+        draw.text(position, message, font=font, fill=(b, g, r, a))
+        draw.multiline_text(position2, message2, font=font, fill=(b, g, r, a), align = 'center')
 
-        b, g, r, a = 0, 255, 0, 0
+        filename = tempfile.mktemp(".png")
+        im.save(filename, quality=95)
+        win32api.ShellExecute(0, "print", filename, None, ".", 0)
+
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+    def image_text2(self):
+        img = np.zeros((855, 605, 3), np.uint8)
+        # img = np.arange(0, 737280, 1, np.uint8)
+        # img = np.reshape(img, (1024, 720))
+
+        b, g, r, a = 100, 100, 0, 0
 
         message = 'OpenCV\n(テスト印刷)'
-
+        rect_img = Image.new("RGB", (300, 100), "White")
         fontpath = 'C:\\Windows\\Fonts\\HGRPP1.TTC'
         font = ImageFont.truetype(fontpath, 32)
         img_pil = Image.fromarray(img)
         draw = ImageDraw.Draw(img_pil)
         position = (50, 100)
+        # draw.bitmap(rect_img)
+        draw.rectangle((200, 100, 300, 200), fill=(255, 255, 255), outline=(0, 0, 0))
         draw.text(position, message, font=font, fill=(b, g, r, a))
         img = np.array(img_pil)
 
         cv2.imshow("res", img)
-        cv2.imwrite("res.png", img)
+        # cv2.imwrite("res.png", img)
+        path = "res.png"
+        filename = tempfile.mktemp(".png")
+        # ファイルを開くアプリケーションによってはエラーになる
+        cv2.imwrite(filename, img)
+        # open(filename, "w").write("This is a テスト")
+        win32api.ShellExecute(0, "print", filename, None, ".", 0)
 
         cv2.waitKey(0)
         cv2.destroyAllWindows()
-
 
     def image_print(self):
         app = QApplication([])
         window = QWidget()
         window.setWindowTitle('Image View')
         # ファイルを読み込み
-        image = QImage('./PB080181.JPG')
+        image = QImage('res.png')
         # -----
         painter = QPainter()
         # 加工したいイメージを渡して編集開始
