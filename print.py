@@ -4,6 +4,7 @@ from ctypes.wintypes import HDC
 from distutils.log import error
 from doctest import master
 import tkinter as tk
+import tkinter.ttk as ttk
 import sys
 # import os
 import io
@@ -27,12 +28,19 @@ from PyQt5.QtCore import Qt
 
 class Application(tk.Frame):
     def __init__(self) -> None:
-        root = tk.Tk()
-        super().__init__(root)
-        sentence = '123_テスト印刷'
-        root.geometry("800x480")
-        button = tk.Button(root, text="閉じる", command=sys.exit)
-        button.pack()
+        master = tk.Tk()
+        super().__init__(master)
+        self.master = master
+        self.sentence = '123_テスト印刷'
+        self.master.geometry("800x480")
+        self.frame_bar = tk.Frame(self.master, borderwidth=2, relief=tk.SUNKEN)
+        self.frame_bar.pack(side=tk.TOP, fill=tk.X)
+
+        self.button_close = tk.Button(self.frame_bar, text="閉じる", command=sys.exit)
+        self.button_close.grid(row=0, column=0, padx=5, pady=0)
+        self.button_print = tk.Button(self.frame_bar, text="イメージテキスト", command=lambda: self.image_text())
+        self.button_print.grid(row=1, column=1, padx=5, pady=0)
+        """
         button1 = tk.Button(root, text="印刷1", command=lambda: self.print_paper(sentence))
         button1.pack()
         button2 = tk.Button(root, text="印刷2", command=self.printer)
@@ -41,12 +49,13 @@ class Application(tk.Frame):
         button3.pack()
         button4 = tk.Button(root, text="印刷4", command=self.use_ShellExecute)
         button4.pack()
-        button5 = tk.Button(root, text="イメージテキスト", command=self.image_text)
+        button5 = tk.Button(root, text="イメージテキスト", command=lambda: self.image_text())
         button5.pack()
         button6 = tk.Button(root, text="イメージテキスト2", command=self.image_text2)
         button6.pack()
         button7 = tk.Button(root, text="イメージテキスト3", command=self.image_print)
         button7.pack()
+        """
 
     """[summary]
     印刷1
@@ -137,7 +146,7 @@ class Application(tk.Frame):
             0
         )
 
-    def image_text(self):
+    def image_text(self, print_text=""):
         im = Image.new('RGB', (604, 855), (255, 255, 255))
         draw = ImageDraw.Draw(im)
         draw.ellipse((100, 100, 150, 200), fill=(255, 0, 0), outline=(0, 0, 0))
