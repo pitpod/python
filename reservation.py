@@ -1,39 +1,46 @@
 # -*- coding: utf-8 -*-
-import codecs
-from ctypes.wintypes import HDC
-from distutils.log import error
-from doctest import master
+# import codecs
+# from ctypes.wintypes import HDC
+# from distutils.log import error
+# from doctest import master
 import tkinter as tk
-import tkinter.ttk as ttk
+# import tkinter.ttk as ttk
 import sys
-# import os
-import io
-from io import StringIO
-from io import BytesIO
+import os
+import pandas as pd
+import sqlite3
+# import io
+# from io import StringIO
+# from io import BytesIO
 import tempfile
-import subprocess
+# import subprocess
 from PIL import ImageFont, ImageDraw, Image
-from matplotlib.pyplot import text
+# from matplotlib.pyplot import text
 from win32 import win32api
-from win32 import win32print
-import win32ui
-import win32con
-import numpy as np
+# from win32 import win32print
+# import win32ui
+# import win32con
+# import numpy as np
 import cv2
-import datetime
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
+import calendar
 
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QSizePolicy
-from PyQt5.QtGui import QImage, QPalette, QPixmap
+# from PyQt5.QtWidgets import QSizePolicy
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel
+# from PyQt5.QtGui import QPalette
+from PyQt5.QtGui import QImage, QPixmap
 # 追加したimport
-from PyQt5.QtGui import QPainter, QFont, QColor
+# from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QPainter, QFont
 from PyQt5.QtCore import Qt
+
 
 class Application(tk.Frame):
     def __init__(self) -> None:
-        master = tk.Tk()
-        super().__init__(master)
-        self.master = master
+        self.master = tk.Tk()
+        super().__init__(self.master)
+        # self.master = master
         self.sentence = '123_テスト印刷'
         self.master.geometry("800x480")
         self.frame_bar = tk.Frame(self.master, borderwidth=2, relief=tk.SUNKEN)
@@ -63,18 +70,27 @@ class Application(tk.Frame):
         self.label_day.grid(row=1, column=5, padx=0, pady=5)
         self.button_month = tk.Button(self.button_bar, text="月間データ", command=lambda: self.month_data())
         self.button_month.grid(row=1, column=6, padx=10, pady=5)
+        self.database_name = "reservation-data.db"
+        self.path = os.path.expanduser('~')
+        self.dbname = f'{self.path}/Dropbox/matsu_pub/2022/data/{self.database_name}'
 
     """
     月間データ
     """
     def month_data(self):
-        self.yearMonthDay= f"{self.entry_year.get()}/{self.entry_month.get()}/{self.entry_day.get()}"
-        self.yearMonthDayNo = SerialData().excel_serial(self.yearMonthDay)
-        self.sqlStr = (f"SELECT time,name,place1,place2,send, charge FROM dayly_data_{self.entry_year.get()}"
-        f" where date={self.entry_day.get()} ORDER BY time IS NULL ASC,SUBSTR('0'||TRIM(REPLACE(time,'PM','11:PM'),'～'),-5,5) ASC,RTRIM(time,'～') DESC,place1 ASC")
-        print(self.sqlStr)
+        self.yearMonthDay_1st = f"{self.entry_year.get()}/{self.entry_month.get()}/1"
+        self.yearMonthDayNo_1st = SerialData().excel_serial(self.yearMonthDay_1st)
+        self.lastDay = calendar.monthrange(int(self.entry_year.get()), int(self.entry_month.get()))[1]
+        # self.yearMonthDay_last = f"{self.entry_year.get()}/{self.entry_month.get()}/{self.lastDay}"
+        self.yearMonthDayNo_last = self.yearMonthDayNo_1st + self.lastDay
+        self.sqlStr = (f"SELECT date, time, name, place1, place2, send, charge FROM dayly_data_{self.entry_year.get()} "
+                       f"where date >= {self.yearMonthDayNo_1st} and date <= {self.yearMonthDayNo_last} "
+                       "ORDER BY date, time IS NULL ASC,SUBSTR('0'||TRIM(REPLACE(time,'PM','11:PM'),'～'),-5,5) ASC,RTRIM(time,'～') DESC,place1 ASC")
+        self.conn = sqlite3.connect(self.dbname)
+        self.df = pd.read_sql_query(sql=self.sqlStr, con=self.conn)
+        for i in range(int(self.yearMonthDayNo_1st), int(self.yearMonthDayNo_last)):
+            print(self.df.query(f'date == {i}'))
         # self.yearMonthDayNo = f"{self.yearMonthDayNo} + 1"
-
 
     """[summary]
     印刷1
@@ -93,7 +109,7 @@ class Application(tk.Frame):
         self.font = ImageFont.truetype(self.fontpath, 32)
         b, g, r, a = 100, 100, 0, 0
         self.draw.text(self.position, self.message, font=self.font, fill=(b, g, r, a))
-        self.draw.multiline_text(self.position2, self.message2, font=self.font, fill=(b, g, r, a), align = 'center')
+        self.draw.multiline_text(self.position2, self.message2, font=self.font, fill=(b, g, r, a), align='center')
 
         self.filename = tempfile.mktemp(".png")
         self.im.save(self.filename, quality=95)
@@ -114,7 +130,7 @@ class Application(tk.Frame):
         self.painter.begin(self.image)
         # ペンの色を指定
         self.painter.setPen(Qt.red)
-        #painter.setPen(QColor(255, 0, 0))
+        # painter.setPen(QColor(255, 0, 0))
 
         # 使用するフォントを指定
         self.painter.setFont(QFont('Times', 30))
@@ -146,6 +162,7 @@ class SerialData():
         day_count = datetime(int(date2_sep[0]), int(date2_sep[1]), int(date2_sep[2]))
         temp = datetime(1899, 12, 30)  # Note, not 31st Dec but 30th!
         return((day_count - temp).days)
+
 
 def main():
     app = Application()
