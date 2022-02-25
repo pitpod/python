@@ -22,6 +22,7 @@ from win32 import win32api
 # import win32con
 # import numpy as np
 import cv2
+import datetime
 from datetime import datetime
 from datetime import timedelta
 import calendar
@@ -88,8 +89,16 @@ class Application(tk.Frame):
                        "ORDER BY date, time IS NULL ASC,SUBSTR('0'||TRIM(REPLACE(time,'PM','11:PM'),'～'),-5,5) ASC,RTRIM(time,'～') DESC,place1 ASC")
         self.conn = sqlite3.connect(self.dbname)
         self.df = pd.read_sql_query(sql=self.sqlStr, con=self.conn)
+        self.dt = datetime(int(self.entry_year.get()), int(self.entry_month.get()), 1)
+        self.dn = self.dt.weekday()
         for i in range(int(self.yearMonthDayNo_1st), int(self.yearMonthDayNo_last)):
             print(self.df.query(f'date == {i}'))
+
+            if self.dn == 6:
+                self.dn = 0
+            else:
+                self.dn+=1
+
         # self.yearMonthDayNo = f"{self.yearMonthDayNo} + 1"
 
     """[summary]
