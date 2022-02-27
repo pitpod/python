@@ -79,6 +79,7 @@ class Application(tk.Frame):
     月間データ
     """
     def month_data(self):
+        MonthWindow()
         self.yearMonthDay_1st = f"{self.entry_year.get()}/{self.entry_month.get()}/1"
         self.yearMonthDayNo_1st = SerialData().excel_serial(self.yearMonthDay_1st)
         self.lastDay = calendar.monthrange(int(self.entry_year.get()), int(self.entry_month.get()))[1]
@@ -90,14 +91,16 @@ class Application(tk.Frame):
         self.conn = sqlite3.connect(self.dbname)
         self.df = pd.read_sql_query(sql=self.sqlStr, con=self.conn)
         self.dt = datetime(int(self.entry_year.get()), int(self.entry_month.get()), 1)
-        self.dn = self.dt.weekday()
+        self.dncol = self.dt.weekday()
+        self.dnrow = 0
         for i in range(int(self.yearMonthDayNo_1st), int(self.yearMonthDayNo_last)):
             print(self.df.query(f'date == {i}'))
 
-            if self.dn == 6:
-                self.dn = 0
+            if self.dncol == 6:
+                self.dncol = 0
+                self.dnrow += 1
             else:
-                self.dn+=1
+                self.dncol += 1
 
         # self.yearMonthDayNo = f"{self.yearMonthDayNo} + 1"
 
@@ -159,6 +162,76 @@ class Application(tk.Frame):
         self.window.resize(400, 300)
         self.window.show()
         self.app.exec_()
+
+
+class MonthWindow(tk.Frame):
+    def __init__(self) -> None:
+        self.root = tk.Tk()
+        self.root.title("月刊予約表")
+        # self.root.geometry("800x600")
+        # Canvasの作成
+        canvas = tk.Canvas(
+            self.root,
+            width=400,
+            height=300,
+            scrollregion=(-200, -100, 800, 600),
+            bg="cyan"
+        )
+
+        # Canvasを配置
+        # canvas.pack()
+        canvas.grid(
+            row=0, column=0,
+            sticky=tk.N + tk.S
+        )
+
+        canvas.create_oval(
+            300, 250,
+            500, 350,
+            fill="blue"
+        )
+
+        canvas.create_oval(
+            700, 0,
+            800, 200,
+            fill="red"
+        )
+
+        xbar = tk.Scrollbar(
+            self.root,
+            orient=tk.HORIZONTAL,
+        )
+
+        ybar = tk.Scrollbar(
+            self.root,
+            orient=tk.VERTICAL,
+        )
+
+        xbar.grid(
+            row=1, column=0,
+            sticky=tk.W + tk.E
+        )
+
+        ybar.grid(
+            row=0, column=1,
+            sticky=tk.N + tk.S
+        )
+
+        xbar.config(
+            command=canvas.xview
+        )
+
+        ybar.config(
+            command=canvas.yview
+        )
+
+        canvas.config(
+            xscrollcommand=xbar.set
+        )
+
+        canvas.config(
+            yscrollcommand=ybar.set
+        )
 
 
 class SerialData():
